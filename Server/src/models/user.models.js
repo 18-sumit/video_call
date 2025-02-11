@@ -70,5 +70,17 @@ UserSchema.methods.generateAccessToken = async function () {
     )
 }
 
+// long lived Tokens
+UserSchema.methods.generateRefreshToken = async function () {
+    return jwt.sign(
+        {
+            _id: this._id
+        },
+        process.env.REFRESH_TOKEN_SECRET,
+        {
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRY
+        }
+    )
+}
 
 export const User = mongoose.models.User || mongoose.model("User", UserSchema)
