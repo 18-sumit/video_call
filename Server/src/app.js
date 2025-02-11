@@ -1,6 +1,9 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import { createServer } from "node:http";
+import { Server } from "socket.io";
+
 
 
 const app = express();
@@ -27,5 +30,10 @@ app.use(
 )
 
 app.use(cookieParser())
+
+// routes import :
+import UserRouter from "./routes/user.routes.js";
+app.use("api/user", UserRouter)
+
 
 export default app;
