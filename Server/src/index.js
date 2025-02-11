@@ -14,7 +14,7 @@ try {
         logger.error("Error", error);
     });
 
-    app.listen(process.env.PORT || 4000, () => {
+    app.listen(process.env.PORT || 8000, () => {
         logger.info(`Server is running on PORT : ${process.env.PORT}`);
     });
 
