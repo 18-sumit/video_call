@@ -19,10 +19,10 @@ const UserSchema = new mongoose.Schema(
         },
         password: {
             type: String,
-            required: () => {
+            required: function () {
                 return !this.clerkId
             },
-            select: false,
+            select: false, // this will affect login query as we will have to add a select:true there
             validate: {
                 validator: (v) => {
                     return /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(v);
@@ -52,6 +52,8 @@ UserSchema.pre('save', async function (next) {
 
 
 UserSchema.methods.isPasswordCorrect = async function (password) {
+    // console.log("Plain password:", password);
+    // console.log("Hashed password in DB:", this.password);
     return await bcrypt.compare(password, this.password)
 }
 
