@@ -137,11 +137,7 @@ const loginUser = asyncHandler(async (req, res) => {
                 "User logged in successfully"
             )
         )
-
-
-
-
-})
+});
 
 
 
