@@ -6,12 +6,14 @@ const UserSchema = new mongoose.Schema(
     {
         name: {
             type: String,
-            required: true,
-            trim: true
+            required: [true, 'User Name is required'],
+            trim: true,
+            minLength: 2,
+            maxLenght: 25
         },
         email: {
             type: String,
-            required: true,
+            required: [true, 'User Email is required'],
             unique: true,
             lowercase: true,
             trim: true,
@@ -47,42 +49,78 @@ UserSchema.pre('save', async function (next) {
 
     if (!this.isModified('password')) return next(); // skip if password not modified
 
-    this.password = await bcrypt.hash(this.password, 10); // hash the password
+    try {
+        this.password = await bcrypt.hash(this.password, 10); // Hash the password
+        next();
+    } catch (err) {
+        next(err); // Error handling in case bcrypt fails
+    }
 })
 
 
 UserSchema.methods.isPasswordCorrect = async function (password) {
     // console.log("Plain password:", password);
     // console.log("Hashed password in DB:", this.password);
-    return await bcrypt.compare(password, this.password)
+    try {
+        return await bcrypt.compare(password, this.password); // Compare hashed password
+    } catch (err) {
+        throw new Error('Password comparison failed'); // Error handling
+    }
 }
 
 // Short lived Tokens
 UserSchema.methods.generateAccessToken = async function () {
-    return jwt.sign(
-        {
-            _id: this._id,
-            name: this.name,
-            email: this.email
-        },
-        process.env.ACCESS_TOKEN_SECRET,
-        {
-            expiresIn: process.env.ACCESS_TOKEN_EXPIRY
-        }
-    )
+    try {
+        return jwt.sign(
+            {
+                _id: this._id,
+                name: this.name,
+                email: this.email
+            },
+            process.env.ACCESS_TOKEN_SECRET,
+            {
+                expiresIn: process.env.ACCESS_TOKEN_EXPIRY || '1d' // Default expiry if env var is not set
+            }
+        );
+    } catch (err) {
+        throw new Error('Error generating access token'); // Error handling
+    }
 }
 
 // long lived Tokens
 UserSchema.methods.generateRefreshToken = async function () {
-    return jwt.sign(
-        {
-            _id: this._id
-        },
-        process.env.REFRESH_TOKEN_SECRET,
-        {
-            expiresIn: process.env.REFRESH_TOKEN_EXPIRY
-        }
-    )
+    try {
+        return jwt.sign(
+            {
+                _id: this._id
+            },
+            process.env.REFRESH_TOKEN_SECRET,
+            {
+                expiresIn: process.env.REFRESH_TOKEN_EXPIRY || '10d' // Default expiry if env var is not set
+            }
+        );
+    } catch (err) {
+        throw new Error('Error generating refresh token'); // Error handling
+    }
+}
+
+UserSchema.methods.generateResetPasswordToken = function () {
+
+    const resetToken = jwt.sign(
+        { _id: this._id },
+        process.env.RESET_PASSWORD_SECRET,
+        { expiresIn: '1h' }
+    );
+
+    this.resetPasswordToken = resetToken;
+    this.resetPasswordExpires = Date.now() + 3600000; // 1hr expiry
+
+    return resetToken;
+}
+
+// Method to check if reset token is expired 
+UserSchema.methods.isResetPasswordTokenExpired = function () {
+    return this.resetPasswordExpires < Date.now();
 }
 
 export const User = mongoose.models.User || mongoose.model("User", UserSchema)
