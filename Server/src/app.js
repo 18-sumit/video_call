@@ -33,7 +33,6 @@ app.use(cookieParser())
 
 // routes import :
 import UserRouter from "./routes/user.routes.js";
-import logger from "./logger.js";
 app.use("/api/v1/user", UserRouter)
 
 
