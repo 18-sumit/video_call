@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { ApiError } from "../utils/ApiError.js"
 
 const UserSchema = new mongoose.Schema(
     {
@@ -27,9 +28,9 @@ const UserSchema = new mongoose.Schema(
             select: false, // this will affect login query as we will have to add a select:true there
             validate: {
                 validator: (v) => {
-                    return /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/.test(v);
+                    return /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/.test(v);
                 },
-                message: "Password must be at least 8 characters long and contain at least one letter and one number.",
+                message: "Password must be at least 8 characters long and contain at least one letter, one number, and one special character.",
             },
         },
         clerkId: {
@@ -37,7 +38,13 @@ const UserSchema = new mongoose.Schema(
             unique: true,
             sparse: true
         },
-        resetPasswordToken: String,
+        resetPasswordToken: {
+            type: String,
+            select: false // Hide the token from normal queries
+        },
+        resetPasswordExpires: {
+            type: Date
+        }
     },
     {
         timestamps: true
@@ -64,7 +71,7 @@ UserSchema.methods.isPasswordCorrect = async function (password) {
     try {
         return await bcrypt.compare(password, this.password); // Compare hashed password
     } catch (err) {
-        throw new Error('Password comparison failed'); // Error handling
+        throw new ApiError(401, `Password comparison failed: ${err.message}`); // Error handling
     }
 }
 
@@ -83,7 +90,7 @@ UserSchema.methods.generateAccessToken = async function () {
             }
         );
     } catch (err) {
-        throw new Error('Error generating access token'); // Error handling
+        throw new ApiError(500, `Error generating access token: ${err.message}`); // Error handling
     }
 }
 
@@ -100,7 +107,7 @@ UserSchema.methods.generateRefreshToken = async function () {
             }
         );
     } catch (err) {
-        throw new Error('Error generating refresh token'); // Error handling
+        throw new ApiError(500, `Error generating refresh token: ${err.message}`); // Error handling
     }
 }
 
