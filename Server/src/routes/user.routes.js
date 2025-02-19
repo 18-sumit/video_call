@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { registerUser, loginUser } from "../controllers/user.controller.js";
+import { registerUser, loginUser, logoutUser } from "../controllers/user.controller.js";
+import { verifyJWT } from "../middleware/auth.middleware.js";
 
 const UserRouter = Router();
 
@@ -8,6 +9,10 @@ const UserRouter = Router();
 
 UserRouter.route("/register").post(registerUser);
 UserRouter.route("/login").post(loginUser);
+
+
+// secured | Protected routes:
+UserRouter.route("/logout").post(verifyJWT, logoutUser)
 
 
 
