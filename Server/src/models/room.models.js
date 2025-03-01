@@ -26,7 +26,12 @@ const RoomSchema = new mongoose.Schema(
                 ref: "User"
             }
         ],
-
+        maxParticipants: {
+            type: Number,
+            required: true,
+            min: 1, // Ensure at least one participant
+        }
+        
     },
     { timestamps: true }
 )
