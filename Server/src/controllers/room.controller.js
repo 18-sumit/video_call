@@ -165,7 +165,40 @@ const leaveRoom = asyncHandler(async (req, res) => {
 });
 
 const deleteRoom = asyncHandler(async (req, res) => {
-    
+
+    const { roomId } = req.params;
+    const userId = req.user.id;
+
+    if (!isValidObjectId(roomId) || !isValidObjectId(userId)) {
+        throw new ApiError(400, "Invalid roomID or userID");
+    }
+
+    const room = await Room.findById(roomId);
+    if (!room) {
+        throw new ApiError(
+            404, "Room not found"
+        )
+    }
+
+    if (room?.createdBy[0].toString() !== req.userId.toString()) {
+        throw new ApiError(
+            400,
+            "Only owner can delete the room"
+        )
+    }
+
+    await Room.findByIdAndDelete(roomId);
+
+
+    return res
+        .status(204) // No Content as no further data needs to be sent
+        .json(
+            new ApiResponse(
+                204,
+                { roomId },
+                "Room deleted successfully"
+            )
+        )
 });
 
 export {
