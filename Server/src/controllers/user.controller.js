@@ -1,4 +1,4 @@
-import { asyncHandler } from "../utils/AsyncHandler.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
@@ -8,23 +8,29 @@ import logger from "../logger.js";
 import { validationResult } from "express-validator";
 
 
-const generateAccessRefreshToken = async (userId) => {
+const generateAccessAndRefreshToken = async (userId) => {
     try {
-
         const user = await User.findById(userId);
-        const accessToken = user.generateAccessToken()
-        const refreshToken = user.generateRefreshToken()
 
-        // to save refreshToken in db 
+        if (!user) {
+            throw new Error("User not found")
+        }
+        // generate access & refresh Tokens
+        // await them , because user.generateAccessToken() and user.RefreshToken() 
+        //methods return a promise because they internally use jwt.sign()
+        // which doesn't resolve immediately, but instead returns a promise.
+
+        const accessToken = await user.generateAccessToken();
+        const refreshToken = await user.generateRefreshToken();
+
+        // save refresh token in DB:
         user.refreshToken = refreshToken
         await user.save({ validateBeforeSave: false })
 
         return { accessToken, refreshToken }
+
     } catch (error) {
-        throw new ApiError(
-            500,
-            "Something went wrong while generating access and refresh tokens"
-        )
+        throw new Error(error.message, "smthing went wrong while gen.. refresh & access token");
     }
 }
 
@@ -62,6 +68,7 @@ const registerUser = asyncHandler(async (req, res) => {
         }
     )
 
+    // Fetch the created user excluding password and refreshToken
     const createdUser = await User.findById(user._id).select("-password -refreshToken")
 
     if (!createdUser) {
@@ -71,6 +78,7 @@ const registerUser = asyncHandler(async (req, res) => {
         )
     }
 
+    // Success respond
     return res
         .status(201)
         .json(
@@ -117,7 +125,8 @@ const loginUser = asyncHandler(async (req, res) => {
         )
     }
 
-    const { accessToken, refreshToken } = generateAccessRefreshToken(user._id);
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
+    // console.log(accessToken, refreshToken);
 
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
 
@@ -141,6 +150,12 @@ const loginUser = asyncHandler(async (req, res) => {
 
 const logoutUser = asyncHandler(async (req, res) => {
 
+    // Ensure the user is authenticated (user should be in the request object)
+    if (!req.user) {
+        throw new ApiError(400, "User is not authenticated");
+    }
+
+    // Clear the refresh token from the database
     await User.findOneAndUpdate(
         req.user._id,
         {
