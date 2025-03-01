@@ -186,13 +186,57 @@ const logoutUser = asyncHandler(async (req, res) => {
         )
 })
 
+const getUserProfile = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) {
+        throw new ApiError(
+            404,
+            "User not found"
+        )
+    }
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                { user },
+                "User Profile retrieved successfully"
+            )
+        )
+});
 
+const updateUserProfile = asyncHandler(async (req, res) => {
 
+    const { name, email } = req.body;
+    if (!name || !email) {
+        throw new ApiError(400, "All fields are required")
+    }
 
+    const user = await User.findByIdAndUpdate(
+        req.user?.id,
+        {
+            $set: {
+                name,
+                email
+            }
+        },
+        { new: true }
+    ).select("-password")
+
+    return res
+        .status(200)
+        .json(new ApiResponse(
+            200,
+            user,
+            "Account details updated"
+        ))
+})
 
 
 export {
     registerUser,
     loginUser,
-    logoutUser
+    logoutUser,
+    getUserProfile,
+    updateUserProfile,
 }
