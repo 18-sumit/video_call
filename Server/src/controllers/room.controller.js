@@ -8,6 +8,10 @@ import mongoose, { isValidObjectId } from "mongoose"
 const createRoom = asyncHandler(async (req, res) => {
     const { roomName, maxParticipants } = req.body;
 
+    if (!roomName && !maxParticipants) {
+        throw new ApiError()
+    }
+
     // Validate if maxParticipants is a number and greater than 0
     if (maxParticipants && typeof maxParticipants !== "number" || maxParticipants <= 0) {
         throw new ApiError(400, "maxParticipants must be a positive number");
@@ -85,6 +89,11 @@ const joinRoom = asyncHandler(async (req, res) => {
     const { roomId } = req.params;
     const userId = req.user.id;
 
+    if (!isValidObjectId(roomId) || !isValidObjectId(userId)) {
+        throw new ApiError(400, "Invalid roomID or userID");
+    }
+
+
     const room = await Room.findById(roomId);
     if (!room) {
         throw new ApiError(404, "No rooms found");
@@ -119,11 +128,44 @@ const joinRoom = asyncHandler(async (req, res) => {
 });
 
 const leaveRoom = asyncHandler(async (req, res) => {
-    
+
+    const { roomId } = req.params;
+    const userId = req.user.id;
+
+    if (!isValidObjectId(roomId) || !isValidObjectId(userId)) {
+        throw new ApiError(400, "Invalid roomID or userID");
+    }
+
+
+    const room = await Room.findById(roomId);
+    if (!room) {
+        throw new ApiError(404, "Room not found");
+    }
+
+    room.participants = room.participants.filter(id => id.toString() !== userId);
+
+    // If no participants left, delete the room
+    if (room.participants.length === 0) {
+        await Room.findByIdAndDelete(roomId);
+        return res.json({ message: "Room deleted as no participant left" });
+    }
+
+    // Save updated room
+    await room.save();
+
+
+    return res
+        .status(200)
+        .json(new ApiResponse(
+            200,
+            {},
+            "Left the room successfully"
+        ))
+
 });
 
 const deleteRoom = asyncHandler(async (req, res) => {
-
+    
 });
 
 export {
