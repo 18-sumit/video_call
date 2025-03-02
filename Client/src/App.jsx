@@ -1,15 +1,18 @@
 import './App.css'
 import React from 'react'
+import { Routes, Route } from 'react-router-dom'
+import LobbyScreen from './Screens/Lobby.jsx'
+
+
+
 function App() {
 
   return (
-    <>
-      <body>
-        <h1 class="text-3xl font-bold underline text-amber-200">
-          Hello world!
-        </h1>
-      </body>
-    </>
+    <div className='App'>
+      <Routes>
+        <Route path='/' element={<LobbyScreen />} />
+      </Routes>
+    </div>
   )
 }
 
