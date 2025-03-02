@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { createRoom, getAllRooms, leaveRoom, getRoomById, joinRoom, deleteRoom } from "../controllers/room.controller";
-import { verifyJWT } from "../middleware/auth.middleware";
-import { checkRoomAdmin } from "../middleware/admin.middleware";
+import { createRoom, getAllRooms, leaveRoom, getRoomById, joinRoom, deleteRoom } from "../controllers/room.controller.js";
+import { verifyJWT } from "../middleware/auth.middleware.js";
+import { checkRoomAdmin } from "../middleware/admin.middleware.js";
 
 
 const RoomRouter = Router();
