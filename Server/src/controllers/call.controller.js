@@ -28,7 +28,10 @@ const initiateCall = asyncHandler(async (req, res) => {
 
 
 
+const endCall = asyncHandler(async (req, res) => {
 
+
+});
 
 
 
@@ -45,5 +48,6 @@ const initiateCall = asyncHandler(async (req, res) => {
 
 export {
     initiateCall,
+    endCall,
 
 }
