@@ -15,17 +15,26 @@ export const initializeSockets = (server) => {
 
     // Jab bhi client WebSocket se connect karega, yeh block execute hoga.
     ioInstance.on("connection", (socket) => {
-        console.log(`client connected : ${socket.id}`);
+        console.log(`✅ client connected : ${socket.id}`);
 
         // Listen for join room
         socket.on("join-room", (roomId, userId) => {
             socket.join(roomId);
+            console.log(`User ${userId} joined room ${roomId}`);
             socket.to(roomId).emit("user-connected", userId);
         })
 
-        //Listen for call events
-        socket.on("call-user", ({ to, signalData }) => {
-            ioInstance.to(to).emit("incoming-call", { signal: signalData, from: socket.id });
+        // Handling WebRTC Signaling
+        socket.on("offer", ({ roomId, offer }) => {
+            socket.to(roomId).emit("offer", offer);
+        });
+
+        socket.on("answer", ({ roomId, answer }) => {
+            socket.to(roomId).emit("answer", answer)
+        });
+
+        socket.on("ice-candidate", ({ roomId, candidate }) => {
+            socket.to(roomId).emit("ice-candidate", candidate)
         })
 
         // Listen for errors
