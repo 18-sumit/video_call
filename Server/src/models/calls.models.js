@@ -21,4 +21,4 @@ const CallSchema = new mongoose.Schema(
     }
 )
 
-export const Call = mongoose.models.Call || mongoose.model("Call", CallSchema)
+export const Call = mongoose.models.Call || mongoose.model("Call", CallSchema);
