@@ -1,4 +1,5 @@
 import { Server } from "socket.io";
+import { handleOffer, handleAnswer, handleICECandidate } from "./controllers/call.controller";
 
 let ioInstance = null;
 
@@ -25,17 +26,9 @@ export const initializeSockets = (server) => {
         })
 
         // Handling WebRTC Signaling
-        socket.on("offer", ({ roomId, offer }) => {
-            socket.to(roomId).emit("offer", offer);
-        });
-
-        socket.on("answer", ({ roomId, answer }) => {
-            socket.to(roomId).emit("answer", answer)
-        });
-
-        socket.on("ice-candidate", ({ roomId, candidate }) => {
-            socket.to(roomId).emit("ice-candidate", candidate)
-        })
+        handleOffer(socket);
+        handleAnswer(socket);
+        handleICECandidate(socket);
 
         // Listen for errors
         socket.on("error", (err) => {
