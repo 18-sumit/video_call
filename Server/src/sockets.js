@@ -1,5 +1,5 @@
 import { Server } from "socket.io";
-import { handleOffer, handleAnswer, handleICECandidate } from "./controllers/call.controller";
+import { handleOffer, handleAnswer, handleICECandidate } from "./controllers/call.controller.js";
 
 let ioInstance = null;
 
