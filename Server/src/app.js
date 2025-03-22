@@ -35,7 +35,7 @@ import RoomRouter from "./routes/room.routes.js";
 import callRouter from "./routes/call.routes.js";
 
 app.use("/api/v1/user", UserRouter);
-app.use("api/v1/rooms", RoomRouter);
+app.use("/api/v1/rooms", RoomRouter);
 app.use("/api/v1/call", callRouter);
 
 
