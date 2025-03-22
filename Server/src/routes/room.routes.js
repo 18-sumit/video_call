@@ -7,14 +7,14 @@ import { checkRoomAdmin } from "../middleware/admin.middleware.js";
 const RoomRouter = Router();
 
 
-RoomRouter.post("/", verifyJWT, createRoom);
+RoomRouter.post("/create", verifyJWT, createRoom);
 RoomRouter.get("/", getAllRooms);
-RoomRouter.get("/:roomId", getRoomById)
+RoomRouter.get("/:roomId", getRoomById);
 RoomRouter.post("/:roomId/join", verifyJWT, joinRoom);
 RoomRouter.post("/:roomId/leave", verifyJWT, leaveRoom);
 
 //ONLY OWNER OF THE ROOM
-RoomRouter.delete("/:roomId", verifyJWT, checkRoomAdmin, deleteRoom)
+RoomRouter.delete("/:roomId", verifyJWT, checkRoomAdmin, deleteRoom);
 
 
 
