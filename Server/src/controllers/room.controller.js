@@ -145,9 +145,12 @@ const joinRoom = asyncHandler(async (req, res) => {
 const leaveRoom = asyncHandler(async (req, res) => {
 
     const { roomId } = req.params;
-    const userId = req.user.id;
 
-    if (!roomId || userId) {
+    const userId = req.user?.id;
+    console.log("Room ID:", roomId, "User ID:", userId); // Debugging step
+
+
+    if (!roomId || !isValidObjectId(userId)) {
         throw new ApiError(400, "Invalid roomID or userID");
     }
 
@@ -180,7 +183,7 @@ const leaveRoom = asyncHandler(async (req, res) => {
 
     // Save updated room
     await room.save();
-
+    console.log("Left the room Successfully");
 
     return res
         .status(200)
