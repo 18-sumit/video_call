@@ -10,19 +10,19 @@ const RoomSchema = new mongoose.Schema(
             minLength: 2,
             maxLength: 50
         },
-        roomId: {
-            type: String,
-            required: true,
-            unique: true
-        },
+        // roomId: {
+        //     type: String,
+        //     required: true,
+        //     unique: true
+        // },        
         createdBy: {
-            type: Schema.Types.ObjectId,
+            type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true
         },
         participants: [ // array cuz their will be multiple participants
             {
-                type: Schema.Types.ObjectId,
+                type: mongoose.Schema.Types.ObjectId,
                 ref: "User"
             }
         ],
@@ -31,9 +31,10 @@ const RoomSchema = new mongoose.Schema(
             required: true,
             min: 1, // Ensure at least one participant
         }
-        
+
     },
     { timestamps: true }
-)
+);
+
 
 export const Room = mongoose.models.Room || mongoose.model("Room", RoomSchema)
