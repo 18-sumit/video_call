@@ -3,11 +3,11 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Room } from "../models/room.models.js";
 
-export const checkRoomAdmin = asyncHandler(async (req, res) => {
+export const checkRoomAdmin = asyncHandler(async (req, res, next) => {
     const { roomId } = req.params;
     const userId = req.user.id
 
-    const room = await Room.findById(roomId);
+    const room = await Room.findOne({ roomId });
 
     if (!room) {
         throw new ApiError(
@@ -16,7 +16,7 @@ export const checkRoomAdmin = asyncHandler(async (req, res) => {
         )
     }
 
-    if (room.createdBy[0].toString() !== req.userId.toString()) {
+    if (room.createdBy.toString() !== userId.toString()) {
         throw new ApiError(403, "Only the room owner can perform this action")
     }
 
