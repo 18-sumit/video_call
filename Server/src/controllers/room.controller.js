@@ -20,18 +20,15 @@ const createRoom = asyncHandler(async (req, res) => {
     }
 
     const newRoom = await Room.create({
-        roomId: nanoid(),
+        // CHANGED: Keep the nanoid as a separate field
+        roomId: nanoid(), // Unique string identifier
         roomName,
         maxParticipants,
-        createdBy: req.user.id, // User ID jo room create kar raha hai
-        participants: [req.user.id], // Initially creator hee pehla participant hoga
+        createdBy: req.user.id,
+        participants: [req.user.id],
     })
 
     logger.info(newRoom);
-
-
-    // Save the new room to the database
-    // await newRoom.save();
 
     return res
         .status(201)
@@ -48,10 +45,8 @@ const createRoom = asyncHandler(async (req, res) => {
 const getRoomById = asyncHandler(async (req, res) => {
     const { roomId } = req.params;
 
-    if (!isValidObjectId(roomId)) {
-        throw new ApiError(400, "Invalid roomId")
-    }
-    const room = await Room.findById(roomId).populate("participants", "name");
+    // CHANGED: Modified room finding logic
+    const room = await Room.findOne({ roomId }).populate("participants", "name");
 
     if (!room) {
         throw new ApiError(404, "Room not found")
@@ -69,10 +64,7 @@ const getRoomById = asyncHandler(async (req, res) => {
 })
 
 const getAllRooms = asyncHandler(async (req, res) => {
-
     const rooms = await Room.find().populate("createdBy", "name");
-
-    // find return always returns an array (even if no documents are found) so hame 0 rooms ke liye bhi check karenge
 
     if (rooms.length === 0) {
         throw new ApiError(404, "No rooms found");
@@ -90,46 +82,30 @@ const getAllRooms = asyncHandler(async (req, res) => {
 })
 
 const joinRoom = asyncHandler(async (req, res) => {
-
     const { roomId } = req.params;
     const userId = req.user?.id;
 
-
     if (!userId) {
-        console.log("Error: Invalid user ID");
         throw new ApiError(400, "Invalid user ID");
     }
 
-    // RoomId is a string (not ObjectId), so use findOne instead findById
+    // CHANGED: Find room by roomId instead of _id
     const room = await Room.findOne({ roomId });
 
     if (!room) {
         throw new ApiError(404, "No rooms found");
     }
 
-    console.log("Current Participants:", room.participants);
-    console.log("Max Participants:", room.maxParticipants);
-
     if (room.participants.includes(userId)) {
-        console.log("Error: User already in the room");
-        throw new Error(
-            400,
-            "User already in the room"
-        )
+        throw new ApiError(400, "User already in the room");
     }
 
     if (room.participants.length >= room.maxParticipants) {
-        console.log("Error: Room is full");
-        throw new ApiError(
-            400,
-            "Room is Full"
-        )
+        throw new ApiError(400, "Room is Full");
     }
 
     room.participants.push(userId);
     await room.save();
-    console.log("User joined successfully:", userId);
-
 
     return res
         .status(200)
@@ -143,18 +119,10 @@ const joinRoom = asyncHandler(async (req, res) => {
 });
 
 const leaveRoom = asyncHandler(async (req, res) => {
-
     const { roomId } = req.params;
-
     const userId = req.user?.id;
-    console.log("Room ID:", roomId, "User ID:", userId); // Debugging step
 
-
-    if (!roomId || !isValidObjectId(userId)) {
-        throw new ApiError(400, "Invalid roomID or userID");
-    }
-
-
+    // CHANGED: Find room by roomId
     const room = await Room.findOne({ roomId });
     if (!room) {
         throw new ApiError(404, "Room not found");
@@ -164,7 +132,6 @@ const leaveRoom = asyncHandler(async (req, res) => {
     if (!room.participants.includes(userId)) {
         throw new ApiError(400, "User is not in the room");
     }
-
 
     // Remove user from participants
     room.participants = room.participants.filter(id => id.toString() !== userId);
@@ -183,7 +150,6 @@ const leaveRoom = asyncHandler(async (req, res) => {
 
     // Save updated room
     await room.save();
-    console.log("Left the room Successfully");
 
     return res
         .status(200)
@@ -192,37 +158,27 @@ const leaveRoom = asyncHandler(async (req, res) => {
             {},
             "Left the room successfully"
         ))
-
 });
 
 const deleteRoom = asyncHandler(async (req, res) => {
-
     const { roomId } = req.params;
     const userId = req.user.id;
 
-    if (!isValidObjectId(roomId) || !isValidObjectId(userId)) {
-        throw new ApiError(400, "Invalid roomID or userID");
-    }
-
-    const room = await Room.findById(roomId);
+    // CHANGED: Find room by roomId
+    const room = await Room.findOne({ roomId });
     if (!room) {
-        throw new ApiError(
-            404, "Room not found"
-        )
+        throw new ApiError(404, "Room not found");
     }
 
-    if (room?.createdBy[0].toString() !== req.userId.toString()) {
-        throw new ApiError(
-            400,
-            "Only owner can delete the room"
-        )
+    // CHANGED: Fixed comparison of createdBy
+    if (room.createdBy.toString() !== userId.toString()) {
+        throw new ApiError(400, "Only owner can delete the room");
     }
 
-    await Room.findByIdAndDelete(roomId);
-
+    await Room.deleteOne({ roomId });
 
     return res
-        .status(204) // No Content as no further data needs to be sent
+        .status(204)
         .json(
             new ApiResponse(
                 204,
