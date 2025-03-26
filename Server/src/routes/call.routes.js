@@ -7,7 +7,7 @@ const callRouter = Router();
 
 callRouter.post("/start", verifyJWT, initiateCall);
 callRouter.post("/endcall", verifyJWT, endCall);
-callRouter.get("history/:userId", verifyJWT, getCallHistory)
+callRouter.get("/history/:userId", verifyJWT, getCallHistory)
 
 
 export default callRouter;
