@@ -10,11 +10,11 @@ const RoomSchema = new mongoose.Schema(
             minLength: 2,
             maxLength: 50
         },
-        // roomId: {
-        //     type: String,
-        //     required: true,
-        //     unique: true
-        // },        
+        roomId: {
+            type: String,
+            required: true,
+            unique: true
+        },        
         createdBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
