@@ -1,6 +1,6 @@
 import { Server } from "socket.io";
 import { handleOffer, handleAnswer, handleICECandidate } from "./controllers/call.controller.js";
-
+import { handleChatMessages } from "./sockets/sockets.chat.js";
 let ioInstance = null;
 
 
@@ -59,6 +59,7 @@ export const initializeSockets = (server) => {
         handleOffer(socket);
         handleAnswer(socket);
         handleICECandidate(socket);
+        handleChatMessages(socket, ioInstance) // to handle realtime chats
 
         // Listen for errors
         socket.on("error", (err) => {
@@ -79,7 +80,7 @@ export const initializeSockets = (server) => {
 
 export const getIO = () => {
     if (!ioInstance) {
-        throw new Error("❌ Socket.io instance is not initialized. Make sure to call initializeSockets first.");
+        throw new Error("Socket.io instance is not initialized. Make sure to call initializeSockets first.");
     }
 
     return ioInstance;  // Agar `ioInstance` initialized hai, toh usko return karega.
