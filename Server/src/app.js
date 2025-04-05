@@ -33,10 +33,12 @@ app.use(cookieParser())
 import UserRouter from "./routes/user.routes.js";
 import RoomRouter from "./routes/room.routes.js";
 import callRouter from "./routes/call.routes.js";
+import chatRouter from "./routes/chat.routes.js";
 
 app.use("/api/v1/user", UserRouter);
 app.use("/api/v1/rooms", RoomRouter);
 app.use("/api/v1/call", callRouter);
+app.use("/api/v1/chat", chatRouter);
 
 
 
