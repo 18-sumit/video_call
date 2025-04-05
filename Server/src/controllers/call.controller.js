@@ -2,15 +2,28 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Call } from "../models/calls.models.js";
+import { getIO } from "../sockets.js";
 
 const initiateCall = asyncHandler(async (req, res) => {
 
-    const { roomId, callId } = req.body;
-    if (!roomId || !callId) {
+    // console.log(req.body);
+    const { roomId, callerId, receiverId } = req.body;
+    console.log("🛠 Incoming call data:", { roomId, callerId, receiverId });
+
+    if (!roomId || !callerId) {
         throw new ApiError(404, "RoomId and CallerId not found");
     }
 
-    req.app.get("io").to(roomId).emit("callstarted", { callId });
+    const call = await Call.create({
+        roomId,
+        caller: callerId,
+        receiver: receiverId,
+    });
+
+    console.log("✅ Call Created:", call);
+
+
+    getIO().to(roomId).emit("callstarted", { callerId });
 
     return res
         .status(200)
@@ -23,16 +36,22 @@ const initiateCall = asyncHandler(async (req, res) => {
 
 
 const endCall = asyncHandler(async (req, res) => {
+
+    // console.log(req.body);
+
     const { roomId, callerId } = req.body;
+
+    // console.log("callerID : ", callerId);
+
     if (!roomId || !callerId) {
         throw new ApiError(400, "RoomId and CallerId are required");
     }
     // emit event to notify user that call has ended;
-    req.app.get('io').to(roomId).emit("Call ended", { callerId })
+    getIO().to(roomId).emit("Call ended", { callerId })
 
     return res
         .status(200)
-        .message(new ApiResponse(
+        .json(new ApiResponse(
             200,
             { roomId },
             "Call ended successfully"
@@ -67,6 +86,9 @@ const getCallHistory = asyncHandler(async (req, res) => {
 
     const { userId } = req.params;
     const callLogs = await Call.find({ participants: userId });
+
+    console.log(callLogs);
+
 
     if (!callLogs.length) {
         throw new ApiError(404, "No call history found for this user.");

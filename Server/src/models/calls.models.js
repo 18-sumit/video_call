@@ -7,6 +7,16 @@ const CallSchema = new mongoose.Schema(
             type: String,
             required: true
         },
+        participants: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User"
+            }
+        ],
+        isActive: {
+            type: Boolean,
+            default: true  // Jab tak call active hai, yeh true rahega
+        },
         caller: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User"
