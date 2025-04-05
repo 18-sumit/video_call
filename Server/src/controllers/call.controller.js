@@ -3,12 +3,13 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Call } from "../models/calls.models.js";
 import { getIO } from "../sockets.js";
+import { isValidObjectId } from "mongoose";
 
 const initiateCall = asyncHandler(async (req, res) => {
 
     // console.log(req.body);
     const { roomId, callerId, receiverId } = req.body;
-    console.log("🛠 Incoming call data:", { roomId, callerId, receiverId });
+    console.log("Incoming call data:", { roomId, callerId, receiverId });
 
     if (!roomId || !callerId) {
         throw new ApiError(404, "RoomId and CallerId not found");
@@ -85,6 +86,10 @@ const handleICECandidate = (socket) => {
 const getCallHistory = asyncHandler(async (req, res) => {
 
     const { userId } = req.params;
+    if (!isValidObjectId(userId)) {
+        throw new ApiError(400, "Invalid user ID format");
+    }
+
     const callLogs = await Call.find({ participants: userId });
 
     console.log(callLogs);
